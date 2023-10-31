@@ -1,0 +1,11 @@
+SPOTIPY_CLIENT_ID=
+SPOTIPY_CLIENT_SECRET=
+SPOTIPY_REDIRECT_URI=http://localhost:8888/callback
+music_download_folder=
+EMAIL_ADDRESS=sending_email@gmail.com
+EMAIL_PASSWORD=sending_email_password
+TO_EMAIL=recipient_email@example.com
+
+
+
+
