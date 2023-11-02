@@ -238,8 +238,8 @@ for liked_song in song_list:
         time.sleep(int(delay/5))
 
         # Locate and click the first button (replace coordinates with actual values)
-        if pyautogui.locateOnScreen('assets/Search_Box.png') is not None:
-            button_x, button_y = pyautogui.locateCenterOnScreen('assets/Search_Box.png')
+        if pyautogui.locateOnScreen('assets/search_box.png') is not None:
+            button_x, button_y = pyautogui.locateCenterOnScreen('assets/search_box.png')
             print("CONSOLE: Search Box found")
             pyautogui.click(button_x, button_y)
         else:
