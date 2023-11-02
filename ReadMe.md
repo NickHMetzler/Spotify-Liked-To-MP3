@@ -1,6 +1,6 @@
 # Spotify To MP3 Converter
 
-This Python program allows you to download music from Spotify and convert it to MP3 format. Follow the instructions below to set up and use the application.
+This Python program allows you to get all your liked songs from Spotify and tries to download them as an MP3 (320kbps). Follow the instructions below to set up and use the application.
 
 ## Setup
 
