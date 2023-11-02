@@ -16,6 +16,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from datetime import datetime
+import keyboard
 
 ###########################
 #                         #
@@ -39,6 +40,8 @@ delay = 5
 first = True
 # Initialize a set to store the list of downloaded filenames
 song_filename_dict = {}
+text_file_path = 'liked_songs.txt'
+
 
 
 ###########################
@@ -169,14 +172,7 @@ def get_liked_songs():
 #                         #
 ###########################
 
-
-
-# Specify the path to your text file
-text_file_path = 'liked_songs.txt'
-
-# Initialize the dictionary with existing associations
 song_filename_dict = load_song_filename_dict(text_file_path)
-
 
 scope = "user-library-read"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
@@ -211,7 +207,8 @@ last_song = get_most_recently_downloaded_filename(music_download_folder)
 
 # Loop through the search terms
 for liked_song in song_list:
-
+    if keyboard.is_pressed('q'):
+        break
     if liked_song in song_filename_dict:
         print(f"\nCONSOLE: Skipping {liked_song}, already in the directory.")
         continue
@@ -220,7 +217,7 @@ for liked_song in song_list:
 
     i = 0
     found_flag = False
-    while i < 2 and not found_flag:
+    while i < 2 and not found_flag and not keyboard.is_pressed('q'):
         
         # Add a delay to the start
         time.sleep(delay)
@@ -276,14 +273,15 @@ for liked_song in song_list:
         with open('liked_songs.txt', 'a') as file:
             file.write(f"{liked_song} : None\n")
         continue
-        
+    elif keyboard.is_pressed('q'):
+        break
         
     time.sleep(int(delay/5))
     # Scroll down a bit
     pyautogui.press("pagedown")
 
     # Click the captcha
-    if pyautogui.locateOnScreen('assets\captcha.png') is not None:
+    if pyautogui.locateOnScreen('assets\captcha.png') is not None and not keyboard.is_pressed('q'):
         print("CONSOLE: Captcha found, clicking...")
         another_button_x, another_button_y = pyautogui.locateCenterOnScreen('assets\captcha.png')
         pyautogui.click(another_button_x, another_button_y)
@@ -309,12 +307,13 @@ for liked_song in song_list:
     
         else:
             print("CONSOLE: Captcha is valid")
-
+    elif keyboard.is_pressed('q'):
+        break
     else:
         print("CONSOLE: Captcha not found.")
     
     # Locate and click the download button
-    if pyautogui.locateOnScreen('assets\download_2.png') is not None:
+    if pyautogui.locateOnScreen('assets\download_2.png') is not None and not keyboard.is_pressed('q'):
         print(f"CONSOLE: {liked_song} is being downloaded...")
         button_x, button_y = pyautogui.locateCenterOnScreen('assets\download_2.png')
         pyautogui.click(button_x, button_y)
@@ -330,6 +329,8 @@ for liked_song in song_list:
                 file.write(f"{liked_song} : {song_filename_dict[liked_song]}\n")
         else:
             print("CONSOLE: Error with download, moving to the next song.")
+    elif keyboard.is_pressed('q'):
+        break
     else:
         print("CONSOLE: Download Button not found, moving to the next song.")
         
