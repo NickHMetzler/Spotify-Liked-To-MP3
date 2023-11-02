@@ -15,6 +15,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
+from datetime import datetime
 
 ###########################
 #                         #
@@ -36,6 +37,8 @@ SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI")
 # Set the delay to give you time to switch to the browser window
 delay = 5
 first = True
+# Initialize a set to store the list of downloaded filenames
+song_filename_dict = {}
 
 
 ###########################
@@ -51,6 +54,25 @@ script_folder = os.path.dirname(__file__)
 for file in os.listdir(script_folder):
     file_path = os.path.join(script_folder, file)
     os.chmod(file_path, 0o666)
+
+def get_most_recently_downloaded_filename(directory):
+    files = [f for f in os.listdir(directory) if f.endswith('.mp3')]  # Adjust the extension as needed
+    if not files:
+        return None
+
+    files_with_paths = [os.path.join(directory, f) for f in files]
+    latest_file = max(files_with_paths, key=os.path.getmtime)
+    
+    return latest_file
+
+def load_song_filename_dict(file_path):
+    song_filename_dict = {}
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            for line in file:
+                liked_song, filename = line.strip().split(' : ')
+                song_filename_dict[liked_song] = filename
+    return song_filename_dict
 
 # Function to send an email
 def send_email(subject, message):
@@ -136,8 +158,9 @@ def get_liked_songs():
 
         songs.extend(items)
         offset += limit
-
+        
     return songs
+
 
 
 ###########################
@@ -145,6 +168,15 @@ def get_liked_songs():
 #          Code           #
 #                         #
 ###########################
+
+
+
+# Specify the path to your text file
+text_file_path = 'liked_songs.txt'
+
+# Initialize the dictionary with existing associations
+song_filename_dict = load_song_filename_dict(text_file_path)
+
 
 scope = "user-library-read"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
@@ -159,6 +191,7 @@ song_list = []
 for song in liked_songs:
     track = song['track']
     title_artist = f"{track['name']} {', '.join([artist['name'] for artist in track['artists']])}"
+    title_artist = title_artist.replace(',', '')
     song_list.append(title_artist)
 
 
@@ -174,10 +207,12 @@ while i > -1:
 print("CONSOLE: Deleting duplicate MP3 Files...")
 delete_files_with_pattern(music_download_folder)
 
+last_song = get_most_recently_downloaded_filename(music_download_folder)
+
 # Loop through the search terms
 for liked_song in song_list:
-    
-    if is_song_in_directory(liked_song):
+
+    if liked_song in song_filename_dict:
         print(f"\nCONSOLE: Skipping {liked_song}, already in the directory.")
         continue
     
@@ -193,6 +228,7 @@ for liked_song in song_list:
         # Close the old tab and open a new tab to search
         if first != True:
             pyautogui.hotkey("ctrl", "w")
+        else:
             first = False
         time.sleep(int(delay/5))
         pyautogui.hotkey("ctrl", "t")
@@ -237,6 +273,8 @@ for liked_song in song_list:
     # If the song is not found, move onto the next song
     if found_flag == False:
         print("CONSOLE: Song not found, moving to the next song.")
+        with open('liked_songs.txt', 'a') as file:
+            file.write(f"{liked_song} : None\n")
         continue
         
         
@@ -274,19 +312,28 @@ for liked_song in song_list:
 
     else:
         print("CONSOLE: Captcha not found.")
-
-    
     
     # Locate and click the download button
     if pyautogui.locateOnScreen('assets\download_2.png') is not None:
         print(f"CONSOLE: {liked_song} is being downloaded...")
         button_x, button_y = pyautogui.locateCenterOnScreen('assets\download_2.png')
         pyautogui.click(button_x, button_y)
+
+        # Add a delay before moving to the next iteration
+        time.sleep(delay * 3)
+        
+        # Update the dictionary and save to text file
+        if last_song != get_most_recently_downloaded_filename(music_download_folder):
+            song_filename_dict[liked_song] = get_most_recently_downloaded_filename(music_download_folder)
+            last_song = song_filename_dict[liked_song]
+            with open('liked_songs.txt', 'a') as file:
+                file.write(f"{liked_song} : {song_filename_dict[liked_song]}\n")
+        else:
+            print("CONSOLE: Error with download, moving to the next song.")
     else:
         print("CONSOLE: Download Button not found, moving to the next song.")
         
-    # Add a delay before moving to the next iteration
-    time.sleep(delay * 2)
+    
 
 delete_files_with_pattern(music_download_folder)
 # End of the script

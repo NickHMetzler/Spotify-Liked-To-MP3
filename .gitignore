@@ -1,3 +1,5 @@
 .env
 test.py
 .cache
+output
+liked_songs.txt
