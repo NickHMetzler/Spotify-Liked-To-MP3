@@ -319,9 +319,13 @@ for liked_song in song_list:
         pyautogui.click(button_x, button_y)
 
         # Add a delay before moving to the next iteration
-        time.sleep(delay * 3)
+        sleep_timer = int(delay * 3)
+        i = 0
         
         # Update the dictionary and save to text file
+        while last_song == get_most_recently_downloaded_filename(music_download_folder) and i < sleep_timer:
+            time.sleep(1)
+            i += 1
         if last_song != get_most_recently_downloaded_filename(music_download_folder):
             song_filename_dict[liked_song] = get_most_recently_downloaded_filename(music_download_folder)
             last_song = song_filename_dict[liked_song]
